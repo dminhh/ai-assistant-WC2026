@@ -1,5 +1,6 @@
 # app/config.py
 from functools import lru_cache
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -9,6 +10,13 @@ class Settings(BaseSettings):
     api_football_key: str
     jwt_secret: str
     jwt_expire_days: int = 7
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def jwt_secret_min_length(cls, v: str) -> str:
+        if len(v) < 32:
+            raise ValueError("jwt_secret must be at least 32 characters")
+        return v
 
     class Config:
         env_file = ".env"

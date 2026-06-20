@@ -1,4 +1,5 @@
 # app/scheduler/polling.py
+import logging
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import select
@@ -8,6 +9,8 @@ from app.services.sync import sync_matches
 from app.models.competition import Competition
 from app.models.match import Match
 from app.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
 
@@ -32,29 +35,39 @@ async def poll_job():
     """Job chính — chạy mỗi phút, tự quyết định có fetch không."""
     settings = get_settings()
     client = FootballDataClient(api_key=settings.football_data_api_key)
-    async with AsyncSessionLocal() as db:
-        is_live = await _has_live_match(db)
-        is_soon = await _has_upcoming_soon(db)
+    try:
+        async with AsyncSessionLocal() as db:
+            is_live = await _has_live_match(db)
+            is_soon = await _has_upcoming_soon(db)
 
-        # Live: fetch mỗi lần job chạy (mỗi 3 phút theo schedule bên dưới)
-        # Sắp đá: fetch mỗi 30 phút (job riêng)
-        # Không có gì: không fetch
-        if is_live or is_soon:
-            competitions = await _get_active_competitions(db)
-            for comp in competitions:
-                await sync_matches(db, client, comp.api_competition_id, comp.id)
+            # Live: fetch mỗi lần job chạy (mỗi 3 phút theo schedule bên dưới)
+            # Sắp đá: fetch mỗi 30 phút (job riêng)
+            # Không có gì: không fetch
+            if is_live or is_soon:
+                competitions = await _get_active_competitions(db)
+                for comp in competitions:
+                    await sync_matches(db, client, comp.api_competition_id, comp.id)
+    except Exception as e:
+        logger.error(f"poll_job failed: {e}", exc_info=True)
+    finally:
+        await client.aclose()
 
 async def poll_slow_job():
     """Fetch mỗi 6 tiếng — fixtures và standings khi không có trận."""
     settings = get_settings()
     client = FootballDataClient(api_key=settings.football_data_api_key)
-    async with AsyncSessionLocal() as db:
-        is_live = await _has_live_match(db)
-        is_soon = await _has_upcoming_soon(db)
-        if not is_live and not is_soon:
-            competitions = await _get_active_competitions(db)
-            for comp in competitions:
-                await sync_matches(db, client, comp.api_competition_id, comp.id)
+    try:
+        async with AsyncSessionLocal() as db:
+            is_live = await _has_live_match(db)
+            is_soon = await _has_upcoming_soon(db)
+            if not is_live and not is_soon:
+                competitions = await _get_active_competitions(db)
+                for comp in competitions:
+                    await sync_matches(db, client, comp.api_competition_id, comp.id)
+    except Exception as e:
+        logger.error(f"poll_slow_job failed: {e}", exc_info=True)
+    finally:
+        await client.aclose()
 
 def start_scheduler():
     # Poll nhanh (mỗi 3 phút) — chỉ chạy khi có trận live/sắp đá
