@@ -1,6 +1,7 @@
 # app/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, matches, competitions, standings, predictions, chat, admin
 from app.scheduler.polling import start_scheduler, scheduler
 
@@ -13,6 +14,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="WC2026 Prediction API", version="1.0.0", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(auth.router)
 app.include_router(matches.router)
 app.include_router(competitions.router)
