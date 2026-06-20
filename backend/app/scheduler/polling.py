@@ -40,9 +40,6 @@ async def poll_job():
             is_live = await _has_live_match(db)
             is_soon = await _has_upcoming_soon(db)
 
-            # Live: fetch mỗi lần job chạy (mỗi 3 phút theo schedule bên dưới)
-            # Sắp đá: fetch mỗi 30 phút (job riêng)
-            # Không có gì: không fetch
             if is_live or is_soon:
                 competitions = await _get_active_competitions(db)
                 for comp in competitions:
@@ -69,9 +66,31 @@ async def poll_slow_job():
     finally:
         await client.aclose()
 
+async def startup_sync():
+    """Sync ngay khi server khởi động nếu DB chưa có matches."""
+    settings = get_settings()
+    client = FootballDataClient(api_key=settings.football_data_api_key)
+    try:
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(select(Match))
+            has_matches = result.first() is not None
+            if not has_matches:
+                competitions = await _get_active_competitions(db)
+                if competitions:
+                    logger.info("DB rỗng — chạy startup sync...")
+                    for comp in competitions:
+                        await sync_matches(db, client, comp.api_competition_id, comp.id)
+                    logger.info("Startup sync hoàn tất.")
+    except Exception as e:
+        logger.error(f"startup_sync failed: {e}", exc_info=True)
+    finally:
+        await client.aclose()
+
 def start_scheduler():
     # Poll nhanh (mỗi 3 phút) — chỉ chạy khi có trận live/sắp đá
     scheduler.add_job(poll_job, "interval", minutes=3, id="poll_fast")
     # Poll chậm (mỗi 6 tiếng) — khi không có trận
     scheduler.add_job(poll_slow_job, "interval", hours=6, id="poll_slow")
+    # Sync ngay lúc khởi động nếu DB rỗng
+    scheduler.add_job(startup_sync, "date", id="startup_sync")
     scheduler.start()
