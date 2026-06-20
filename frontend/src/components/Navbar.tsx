@@ -7,6 +7,7 @@ import { isLoggedIn } from "@/lib/auth"
 const LINKS = [
   { href: "/",            label: "Dashboard" },
   { href: "/schedule",    label: "Lịch thi đấu" },
+  { href: "/standings",   label: "BXH" },
   { href: "/predictions", label: "Dự đoán" },
   { href: "/chat",        label: "AI Chat" },
 ]
