@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock, call
+from fastapi.testclient import TestClient
 
 
 @pytest.mark.asyncio
@@ -78,3 +79,55 @@ async def test_reflection_agent_streams_response():
 
     assert len(tokens) > 0
     assert "".join(tokens) == "Brazil sẽ thắng!"
+
+
+def test_chat_endpoint_data_query():
+    """POST /chat with data_query routes to react agent and streams SSE."""
+    from app.main import app
+    from app.database import get_db
+
+    async def fake_get_db():
+        yield MagicMock()
+
+    async def fake_react_agent(question, db):
+        yield "token1"
+        yield "token2"
+
+    with patch("app.routers.chat.classify_query", new=AsyncMock(return_value="data_query")), \
+         patch("app.routers.chat.run_react_agent", side_effect=fake_react_agent):
+        app.dependency_overrides[get_db] = fake_get_db
+        client = TestClient(app)
+        response = client.post("/chat", json={"question": "Hôm nay có trận nào?"})
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+    content = response.text
+    assert "data: token1\n\n" in content
+    assert "data: token2\n\n" in content
+    assert "data: [DONE]\n\n" in content
+
+
+def test_chat_endpoint_analysis_query():
+    """POST /chat with analysis_query routes to reflection agent and streams SSE."""
+    from app.main import app
+    from app.database import get_db
+
+    async def fake_get_db():
+        yield MagicMock()
+
+    async def fake_reflection_agent(question, db):
+        yield "analysis_token"
+
+    with patch("app.routers.chat.classify_query", new=AsyncMock(return_value="analysis_query")), \
+         patch("app.routers.chat.run_reflection_agent", side_effect=fake_reflection_agent):
+        app.dependency_overrides[get_db] = fake_get_db
+        client = TestClient(app)
+        response = client.post("/chat", json={"question": "Brazil có thắng không?"})
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+    content = response.text
+    assert "data: analysis_token\n\n" in content
+    assert "data: [DONE]\n\n" in content

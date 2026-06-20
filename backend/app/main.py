@@ -1,7 +1,7 @@
 # app/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.routers import auth, matches, competitions, standings, predictions
+from app.routers import auth, matches, competitions, standings, predictions, chat
 from app.scheduler.polling import start_scheduler, scheduler
 
 
@@ -18,6 +18,7 @@ app.include_router(matches.router)
 app.include_router(competitions.router)
 app.include_router(standings.router)
 app.include_router(predictions.router)
+app.include_router(chat.router)
 
 
 @app.get("/health")
