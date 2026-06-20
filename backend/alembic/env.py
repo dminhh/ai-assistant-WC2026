@@ -18,7 +18,8 @@ if config.config_file_name is not None:
 from app.models import Base
 from app.config import get_settings
 
-config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("+asyncpg", ""))
+_db_url = get_settings().database_url.replace("+asyncpg", "").split("?")[0]
+config.set_main_option("sqlalchemy.url", _db_url)
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
