@@ -3,8 +3,17 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.models import Base
+from app.config import get_settings
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:password@localhost:5432/wc2026_test"
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear lru_cache between tests to avoid stale settings."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest_asyncio.fixture
