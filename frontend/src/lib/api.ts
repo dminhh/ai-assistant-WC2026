@@ -24,7 +24,7 @@ export const api = {
 
   getStandings: (competitionId: string) =>
     get<{ standings: { table: StandingEntry[] }[] }>(`/standings/${competitionId}`, 120)
-      .then(data => data.standings ?? []),
+      .then(data => (data.standings ?? []).map(s => s.table)),
 
   /** Stream chat response via SSE. Returns cancel function. */
   streamChat: (
