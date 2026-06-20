@@ -58,21 +58,32 @@ class Predictor:
         from app.models.team_strength import TeamStrength
 
         match = await db.get(Match, match_id)
+        if match is None:
+            raise ValueError(f"Match {match_id} not found")
+
         comp = await db.get(Competition, match.competition_id)
+        if comp is None:
+            raise ValueError(f"Competition {match.competition_id} not found")
+
+        _default_strength = 1500.0 if comp.competition_type == "national" else 300.0
 
         home_s = await db.scalar(
             select(TeamStrength.strength_value).where(
                 TeamStrength.team_name == match.home_team,
                 TeamStrength.competition_type == comp.competition_type,
             )
-        ) or (1500.0 if comp.competition_type == "national" else 300.0)
+        )
+        if home_s is None:
+            home_s = _default_strength
 
         away_s = await db.scalar(
             select(TeamStrength.strength_value).where(
                 TeamStrength.team_name == match.away_team,
                 TeamStrength.competition_type == comp.competition_type,
             )
-        ) or (1500.0 if comp.competition_type == "national" else 300.0)
+        )
+        if away_s is None:
+            away_s = _default_strength
 
         return self._run_model(
             competition_type=comp.competition_type,

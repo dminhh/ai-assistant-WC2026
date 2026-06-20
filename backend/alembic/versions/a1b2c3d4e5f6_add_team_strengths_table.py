@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column("strength_value", sa.Float(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("team_name", "competition_type", name="uq_team_strength"),
     )
     op.create_index(op.f("ix_team_strengths_team_name"), "team_strengths", ["team_name"], unique=False)
 
