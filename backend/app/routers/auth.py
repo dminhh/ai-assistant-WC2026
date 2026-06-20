@@ -1,12 +1,12 @@
 # app/routers/auth.py
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import RegisterRequest, LoginRequest, UserResponse, TokenResponse
-from app.services.auth import hash_password, verify_password, create_token
+from app.schemas.user import RegisterRequest, LoginRequest, UserResponse, TokenResponse, ChangePasswordRequest
+from app.services.auth import hash_password, verify_password, create_token, decode_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -34,3 +34,23 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return TokenResponse(access_token=create_token(user.id))
+
+
+@router.patch("/password")
+async def change_password(
+    body: ChangePasswordRequest,
+    authorization: str = Header(...),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        payload = decode_token(authorization.removeprefix("Bearer "))
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = await db.get(User, payload["sub"])
+    if not user or not verify_password(body.current_password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Mật khẩu hiện tại không đúng")
+
+    user.password_hash = hash_password(body.new_password)
+    await db.commit()
+    return {"detail": "Đổi mật khẩu thành công"}
