@@ -1,6 +1,8 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import { isLoggedIn } from "@/lib/auth"
 
 const LINKS = [
   { href: "/",            label: "Dashboard" },
@@ -11,6 +13,12 @@ const LINKS = [
 
 export function Navbar() {
   const path = usePathname()
+  const [loggedIn, setLoggedIn] = useState(false)
+
+  useEffect(() => {
+    setLoggedIn(isLoggedIn())
+  }, [path])
+
   return (
     <nav className="sticky top-0 z-50 h-14 flex items-center gap-10 px-6 border-b border-border"
          style={{ background: "rgba(10,14,26,.92)", backdropFilter: "blur(12px)" }}>
@@ -41,13 +49,25 @@ export function Navbar() {
         })}
       </ul>
 
-      {/* CTA */}
-      <Link
-        href="/chat"
-        className="ml-auto bg-amber text-base text-[13px] font-semibold rounded-pill px-4 py-1.5 transition-opacity hover:opacity-85"
-      >
-        ⚡ Hỏi AI
-      </Link>
+      {/* Right side */}
+      <div className="ml-auto flex items-center gap-3">
+        {loggedIn && (
+          <Link
+            href="/admin"
+            className={`text-[13px] font-medium tracking-wide transition-colors ${
+              path === "/admin" ? "text-amber" : "text-text2 hover:text-text"
+            }`}
+          >
+            ⚙ Admin
+          </Link>
+        )}
+        <Link
+          href="/chat"
+          className="bg-amber text-base text-[13px] font-semibold rounded-pill px-4 py-1.5 transition-opacity hover:opacity-85"
+        >
+          ⚡ Hỏi AI
+        </Link>
+      </div>
     </nav>
   )
 }
