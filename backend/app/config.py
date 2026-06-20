@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     api_football_key: str
     jwt_secret: str
     jwt_expire_days: int = 7
+    openai_api_key: str
 
     @field_validator("jwt_secret")
     @classmethod
