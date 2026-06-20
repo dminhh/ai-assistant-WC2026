@@ -123,7 +123,11 @@ async def run_react_agent(question: str, db: AsyncSession) -> AsyncIterator[str]
         ]})
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
-            tool_result = await TOOL_MAP[tc.function.name](args, db)
+            tool_fn = TOOL_MAP.get(tc.function.name)
+            if tool_fn is None:
+                tool_result = json.dumps({"error": f"Unknown tool: {tc.function.name}"})
+            else:
+                tool_result = await tool_fn(args, db)
             messages.append({
                 "role": "tool",
                 "tool_call_id": tc.id,

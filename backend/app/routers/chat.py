@@ -26,7 +26,7 @@ async def chat(body: ChatRequest, db: AsyncSession = Depends(get_db)):
             agent_gen = run_reflection_agent(body.message, db)
 
         async for token in agent_gen:
-            yield f"data: {token}\n\n"
+            yield "data: " + token.replace("\n", "\ndata: ") + "\n\n"
 
         yield "data: [DONE]\n\n"
 

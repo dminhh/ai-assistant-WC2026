@@ -9,8 +9,11 @@ async def test_react_agent_streams_response():
 
     mock_db = MagicMock()
 
+    async def fake_stream_final(messages):
+        yield "Hôm nay có 4 trận"
+
     with patch("app.agent.react_agent.openai_client") as mock_client, \
-         patch("app.agent.react_agent._stream_final") as mock_stream_final:
+         patch("app.agent.react_agent._stream_final", new=fake_stream_final):
 
         # Mock first call: no tool calls, returns direct answer
         mock_client.chat.completions.create = AsyncMock(
@@ -18,12 +21,6 @@ async def test_react_agent_streams_response():
                 choices=[MagicMock(message=MagicMock(content="Hôm nay có 4 trận", tool_calls=None))]
             )
         )
-
-        # Mock _stream_final to yield tokens directly
-        async def fake_stream_final(messages):
-            yield "Hôm nay có 4 trận"
-
-        mock_stream_final.side_effect = fake_stream_final
 
         tokens = []
         async for token in run_react_agent("Hôm nay có trận nào?", db=mock_db):

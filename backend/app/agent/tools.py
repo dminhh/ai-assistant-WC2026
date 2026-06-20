@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.match import Match
@@ -10,9 +10,13 @@ from app.ml.predictor import get_predictor
 async def get_today_fixtures(db: AsyncSession) -> str:
     """Get list of today's matches."""
     today = datetime.now(timezone.utc).date()
+    start = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
+    end = start + timedelta(days=1)
+
     result = await db.execute(
         select(Match).where(
-            Match.kickoff_time >= datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
+            Match.kickoff_time >= start,
+            Match.kickoff_time < end,
         )
     )
     matches = result.scalars().all()

@@ -38,7 +38,11 @@ async def _collect_data(question: str, db: AsyncSession) -> tuple[list, str]:
         ]})
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
-            result = await TOOL_MAP[tc.function.name](args, db)
+            tool_fn = TOOL_MAP.get(tc.function.name)
+            if tool_fn is None:
+                result = json.dumps({"error": f"Unknown tool: {tc.function.name}"})
+            else:
+                result = await tool_fn(args, db)
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
     data_summary = "\n".join(
