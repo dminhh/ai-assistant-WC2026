@@ -47,15 +47,26 @@ async def sync_matches(
         score = m.get("score", {}).get("fullTime", {})
         status = STATUS_MAP.get(m["status"], "upcoming")
 
+        home_team = m["homeTeam"].get("name")
+        away_team = m["awayTeam"].get("name")
+
         if existing:
             existing.status = status
             existing.home_score = score.get("home")
             existing.away_score = score.get("away")
+            # Cập nhật tên đội nếu trước đó chưa có (TBD → tên thật)
+            if home_team:
+                existing.home_team = home_team
+            if away_team:
+                existing.away_team = away_team
         else:
+            # Bỏ qua trận chưa xác định đội (vòng knock-out TBD)
+            if not home_team or not away_team:
+                continue
             db.add(Match(
                 competition_id=db_competition_id,
-                home_team=m["homeTeam"]["name"],
-                away_team=m["awayTeam"]["name"],
+                home_team=home_team,
+                away_team=away_team,
                 kickoff_time=datetime.fromisoformat(m["utcDate"].replace("Z", "+00:00")),
                 status=status,
                 home_score=score.get("home"),
