@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
 from app.models.competition import Competition
-from app.schemas.competition import CompetitionResponse
+from app.schemas.competition import CompetitionCreate, CompetitionResponse
 
 router = APIRouter(prefix="/competitions", tags=["competitions"])
 
@@ -13,6 +13,15 @@ router = APIRouter(prefix="/competitions", tags=["competitions"])
 async def list_competitions(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Competition))
     return result.scalars().all()
+
+
+@router.post("", response_model=CompetitionResponse, status_code=201)
+async def create_competition(body: CompetitionCreate, db: AsyncSession = Depends(get_db)):
+    comp = Competition(**body.model_dump())
+    db.add(comp)
+    await db.commit()
+    await db.refresh(comp)
+    return comp
 
 
 @router.patch("/{competition_id}/toggle", response_model=CompetitionResponse)
