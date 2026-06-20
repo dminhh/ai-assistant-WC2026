@@ -42,17 +42,19 @@ export const api = {
     }).then(async (res) => {
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
+      let doneCalled = false
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
         const text = decoder.decode(value, { stream: true })
         for (const line of text.split("\n")) {
           if (!line.startsWith("data: ")) continue
-          const payload = line.slice(6)
-          if (payload === "[DONE]") { onDone(); return }
+          const payload = line.slice(6).trimEnd()
+          if (payload === "[DONE]") { doneCalled = true; onDone(); return }
           onToken(payload)
         }
       }
+      if (!doneCalled) onDone()
     }).catch(() => {})
 
     return () => ctrl.abort()
