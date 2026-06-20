@@ -89,8 +89,8 @@ async def startup_sync():
 def start_scheduler():
     # Poll nhanh (mỗi 3 phút) — chỉ chạy khi có trận live/sắp đá
     scheduler.add_job(poll_job, "interval", minutes=3, id="poll_fast")
-    # Poll chậm (mỗi 6 tiếng) — khi không có trận
-    scheduler.add_job(poll_slow_job, "interval", hours=6, id="poll_slow")
+    # Poll chậm (mỗi 1 tiếng) — khi không có trận live/sắp đá
+    scheduler.add_job(poll_slow_job, "interval", hours=1, id="poll_slow")
     # Sync ngay lúc khởi động nếu DB rỗng
     scheduler.add_job(startup_sync, "date", id="startup_sync")
     scheduler.start()
