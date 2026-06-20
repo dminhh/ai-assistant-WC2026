@@ -51,7 +51,7 @@ export function Navbar() {
 
       {/* Right side */}
       <div className="ml-auto flex items-center gap-3">
-        {loggedIn && (
+        {loggedIn ? (
           <Link
             href="/admin"
             className={`text-[13px] font-medium tracking-wide transition-colors ${
@@ -59,6 +59,13 @@ export function Navbar() {
             }`}
           >
             ⚙ Admin
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="text-[13px] font-medium text-text2 hover:text-text transition-colors"
+          >
+            Đăng nhập
           </Link>
         )}
         <Link
