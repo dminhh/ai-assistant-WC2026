@@ -97,7 +97,7 @@ def test_chat_endpoint_data_query():
          patch("app.routers.chat.run_react_agent", side_effect=fake_react_agent):
         app.dependency_overrides[get_db] = fake_get_db
         client = TestClient(app)
-        response = client.post("/chat", json={"question": "Hôm nay có trận nào?"})
+        response = client.post("/chat", json={"message": "Hôm nay có trận nào?"})
         app.dependency_overrides.clear()
 
     assert response.status_code == 200
@@ -123,7 +123,7 @@ def test_chat_endpoint_analysis_query():
          patch("app.routers.chat.run_reflection_agent", side_effect=fake_reflection_agent):
         app.dependency_overrides[get_db] = fake_get_db
         client = TestClient(app)
-        response = client.post("/chat", json={"question": "Brazil có thắng không?"})
+        response = client.post("/chat", json={"message": "Brazil có thắng không?"})
         app.dependency_overrides.clear()
 
     assert response.status_code == 200

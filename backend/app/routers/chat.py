@@ -12,18 +12,18 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 class ChatRequest(BaseModel):
-    question: str
+    message: str
 
 
 @router.post("")
 async def chat(body: ChatRequest, db: AsyncSession = Depends(get_db)):
     async def event_stream():
-        query_type = await classify_query(body.question)
+        query_type = await classify_query(body.message)
 
         if query_type == "data_query":
-            agent_gen = run_react_agent(body.question, db)
+            agent_gen = run_react_agent(body.message, db)
         else:
-            agent_gen = run_reflection_agent(body.question, db)
+            agent_gen = run_reflection_agent(body.message, db)
 
         async for token in agent_gen:
             yield f"data: {token}\n\n"
