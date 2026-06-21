@@ -9,6 +9,7 @@ venv/
 *.egg-info/
 .idea/
 .DS_Store
+.claude/
 node_modules/
 .next/
 backend/ml_artifacts/
