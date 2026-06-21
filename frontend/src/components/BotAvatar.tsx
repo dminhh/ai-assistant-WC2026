@@ -1,5 +1,4 @@
 "use client"
-import { useEffect, useRef } from "react"
 
 export function BotAvatar({ size = 28, isTyping = false }: { size?: number; isTyping?: boolean }) {
   return (
