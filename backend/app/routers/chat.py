@@ -20,6 +20,11 @@ async def chat(body: ChatRequest, db: AsyncSession = Depends(get_db)):
     async def event_stream():
         query_type = await classify_query(body.message)
 
+        if query_type == "off_topic":
+            yield "data: Xin lỗi công túa, thần chỉ có thể trả lời các câu hỏi liên quan đến bóng đá và World Cup 2026. Công túa có thể hỏi về lịch thi đấu, kết quả, bảng xếp hạng, dự đoán tỉ số hoặc thống kê các đội bóng ạ.\n\n"
+            yield "data: [DONE]\n\n"
+            return
+
         if query_type == "data_query":
             agent_gen = run_react_agent(body.message, db)
         else:

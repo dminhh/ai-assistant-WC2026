@@ -17,6 +17,7 @@ class CompetitionResponse(BaseModel):
     name: str
     api_competition_id: str
     is_active: bool
+    competition_type: str
     country: str | None
     season: str | None
     logo_url: str | None

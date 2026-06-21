@@ -17,4 +17,5 @@ class Match(Base):
     status: Mapped[str] = mapped_column(String, default="upcoming")
     home_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     away_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    minute: Mapped[int | None] = mapped_column(Integer, nullable=True)
     api_match_id: Mapped[str] = mapped_column(String, unique=True)

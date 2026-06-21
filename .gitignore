@@ -11,3 +11,5 @@ venv/
 .DS_Store
 node_modules/
 .next/
+backend/ml_artifacts/
+backend/data/*.csv

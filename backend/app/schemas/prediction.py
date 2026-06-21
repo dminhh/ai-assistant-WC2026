@@ -9,6 +9,7 @@ class PredictionResponse(BaseModel):
     draw_prob: float
     away_win_prob: float
     predicted_score: str | None
+    score_probs: list | None
     confidence: str
     model_version: str
     created_at: datetime

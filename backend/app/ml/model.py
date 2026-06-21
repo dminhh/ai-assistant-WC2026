@@ -5,11 +5,18 @@ import lightgbm as lgb
 from sklearn.preprocessing import LabelEncoder
 
 FEATURE_ORDER = [
-    "home_strength", "away_strength", "strength_diff", "home_advantage",
-    "home_form_points", "away_form_points",
+    "home_strength", "away_strength", "strength_diff", "elo_home_win_prob", "elo_ratio",
+    "home_advantage", "is_neutral",
+    "home_form_points", "away_form_points", "form_diff",
+    "home_win_rate", "away_win_rate", "home_draw_rate", "away_draw_rate",
     "home_goals_scored_avg", "home_goals_conceded_avg",
     "away_goals_scored_avg", "away_goals_conceded_avg",
-    "h2h_home_win_rate", "h2h_avg_goals", "is_knockout", "days_rest",
+    "home_goals_scored_avg10", "away_goals_scored_avg10",
+    "home_clean_sheet_rate", "away_clean_sheet_rate",
+    "home_scoring_rate", "away_scoring_rate",
+    "home_attack_vs_away_defense", "away_attack_vs_home_defense",
+    "h2h_home_win_rate", "h2h_avg_goals", "h2h_draw_rate", "h2h_count",
+    "is_knockout", "days_rest", "tournament_weight",
 ]
 
 
@@ -37,12 +44,18 @@ class WC2026Model:
             "objective": "multiclass",
             "num_class": 3,
             "metric": "multi_logloss",
-            "num_leaves": 31,
-            "learning_rate": 0.05,
+            "num_leaves": 63,
+            "learning_rate": 0.02,
+            "feature_fraction": 0.8,
+            "bagging_fraction": 0.8,
+            "bagging_freq": 5,
+            "min_child_samples": 20,
+            "reg_alpha": 0.1,
+            "reg_lambda": 0.1,
             "verbose": -1,
         }
         train_data = lgb.Dataset(X_mat, label=y_enc)
-        self._model = lgb.train(params, train_data, num_boost_round=300)
+        self._model = lgb.train(params, train_data, num_boost_round=800)
 
     def predict(self, features: dict) -> dict:
         if self._model is None:

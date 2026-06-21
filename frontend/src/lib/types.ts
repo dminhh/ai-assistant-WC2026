@@ -8,6 +8,7 @@ export interface Match {
   status: "upcoming" | "live" | "finished"
   home_score: number | null
   away_score: number | null
+  minute: number | null
 }
 
 export interface Competition {
@@ -21,6 +22,11 @@ export interface Competition {
   logo_url: string | null
 }
 
+export interface ScoreProb {
+  score: string
+  prob: number  // percentage e.g. 24.5
+}
+
 export interface Prediction {
   id: number
   match_id: number
@@ -28,6 +34,7 @@ export interface Prediction {
   draw_prob: number
   away_win_prob: number
   predicted_score: string | null
+  score_probs: ScoreProb[] | null
   confidence: "low" | "medium" | "high"
   model_version: string
   created_at: string

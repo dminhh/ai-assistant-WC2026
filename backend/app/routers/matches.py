@@ -1,6 +1,6 @@
 # app/routers/matches.py
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timezone, timedelta
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
@@ -20,6 +20,21 @@ async def get_today_matches(db: AsyncSession = Depends(get_db)):
             Match.kickoff_time >= start,
             Match.kickoff_time < end,
         )
+    )
+    return result.scalars().all()
+
+
+@router.get("/upcoming", response_model=list[MatchResponse])
+async def get_upcoming_matches(
+    days: int = Query(default=14, ge=1, le=60),
+    db: AsyncSession = Depends(get_db),
+):
+    now = datetime.now(timezone.utc)
+    end = now + timedelta(days=days)
+    result = await db.execute(
+        select(Match)
+        .where(Match.kickoff_time >= now, Match.kickoff_time <= end)
+        .order_by(Match.kickoff_time)
     )
     return result.scalars().all()
 

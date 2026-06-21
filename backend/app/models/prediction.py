@@ -1,6 +1,6 @@
 # app/models/prediction.py
 from datetime import datetime
-from sqlalchemy import String, Float, ForeignKey, DateTime
+from sqlalchemy import String, Float, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 
@@ -14,6 +14,7 @@ class Prediction(Base):
     draw_prob: Mapped[float] = mapped_column(Float)
     away_win_prob: Mapped[float] = mapped_column(Float)
     predicted_score: Mapped[str | None] = mapped_column(String, nullable=True)
+    score_probs: Mapped[list | None] = mapped_column(JSON, nullable=True)
     # "low" | "medium" | "high"
     confidence: Mapped[str] = mapped_column(String)
     model_version: Mapped[str] = mapped_column(String)

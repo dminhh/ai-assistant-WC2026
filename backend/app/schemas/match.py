@@ -12,5 +12,6 @@ class MatchResponse(BaseModel):
     status: str
     home_score: int | None
     away_score: int | None
+    minute: int | None
 
     model_config = {"from_attributes": True}
