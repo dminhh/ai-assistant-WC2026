@@ -1,5 +1,7 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { api } from "@/lib/api"
 import type { ChatMessage } from "@/lib/types"
 import { BotAvatar } from "./BotAvatar"
@@ -109,17 +111,36 @@ export function ChatInterface() {
                     ? "bg-amber text-base font-medium rounded-br-sm"
                     : "bg-surface2 text-text rounded-bl-sm"
                 }`}>
-                  {msg.content || (
-                    msg.isStreaming
-                      ? <span className="flex gap-1 py-0.5">
-                          {[0, 150, 300].map(d => (
-                            <span key={d} className="w-1.5 h-1.5 rounded-full bg-text3 animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                          ))}
-                        </span>
-                      : null
-                  )}
-                  {msg.isStreaming && msg.content && (
-                    <span className="inline-block w-0.5 h-3.5 bg-amber ml-0.5 align-middle animate-pulse" />
+                  {msg.role === "assistant" ? (
+                    msg.content ? (
+                      <>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                            strong: ({ children }) => <strong className="font-semibold text-text">{children}</strong>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-1.5">{children}</ol>,
+                            ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-1.5">{children}</ul>,
+                            li: ({ children }) => <li className="text-[13px]">{children}</li>,
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                        {msg.isStreaming && (
+                          <span className="inline-block w-0.5 h-3.5 bg-amber ml-0.5 align-middle animate-pulse" />
+                        )}
+                      </>
+                    ) : (
+                      msg.isStreaming
+                        ? <span className="flex gap-1 py-0.5">
+                            {[0, 150, 300].map(d => (
+                              <span key={d} className="w-1.5 h-1.5 rounded-full bg-text3 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+                            ))}
+                          </span>
+                        : null
+                    )
+                  ) : (
+                    msg.content
                   )}
                 </div>
               </div>

@@ -3,10 +3,15 @@ from app.config import get_settings
 
 openai_client = AsyncOpenAI(api_key=get_settings().openai_api_key)
 
-SYSTEM_PROMPT = """Phân loại câu hỏi thành một trong 3 loại:
-- "data_query": câu hỏi về thông tin thực tế bóng đá (lịch thi đấu, tỉ số, bảng xếp hạng, thống kê)
-- "analysis_query": câu hỏi cần phân tích, dự đoán, so sánh, giải thích về bóng đá
-- "off_topic": câu hỏi KHÔNG liên quan đến bóng đá hoặc World Cup 2026
+SYSTEM_PROMPT = """Bạn là bộ phân loại câu hỏi cho chatbot AI chuyên về bóng đá World Cup 2026.
+Người dùng đang trò chuyện với chatbot bóng đá, vì vậy các câu hỏi ngắn như "hôm nay có trận nào?", "ai thắng?", "kết quả?", "bảng xếp hạng?" đều mặc định là hỏi về bóng đá.
+
+Phân loại câu hỏi thành một trong 3 loại:
+- "data_query": câu hỏi về thông tin thực tế (lịch thi đấu, tỉ số, kết quả, bảng xếp hạng, thống kê đội bóng, cầu thủ)
+- "analysis_query": câu hỏi cần phân tích, dự đoán, so sánh, đánh giá về bóng đá
+- "off_topic": câu hỏi RÕ RÀNG không liên quan gì đến bóng đá (ví dụ: nấu ăn, thời tiết, lập trình, v.v.)
+
+Khi nghi ngờ, hãy chọn "data_query" hoặc "analysis_query" thay vì "off_topic".
 
 Chỉ trả về đúng 1 trong 3 giá trị trên, không giải thích thêm."""
 
