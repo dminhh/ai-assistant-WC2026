@@ -1,7 +1,19 @@
+import re
 from openai import AsyncOpenAI
 from app.config import get_settings
 
 openai_client = AsyncOpenAI(api_key=get_settings().openai_api_key)
+
+_FOOTBALL_KEYWORDS = re.compile(
+    r"trận|đấu|kết quả|tỉ số|tỷ số|bảng xếp hạng|lịch thi|world cup|wc|"
+    r"bóng đá|đội bóng|cầu thủ|bàn thắng|vô địch|dự đoán|thắng|thua|hòa|"
+    r"fifa|goal|match|score|standing|group|bảng|đội|vs|league",
+    re.IGNORECASE,
+)
+
+
+def _is_clearly_football(question: str) -> bool:
+    return bool(_FOOTBALL_KEYWORDS.search(question))
 
 SYSTEM_PROMPT = """Bạn là bộ phân loại câu hỏi cho chatbot AI chuyên về bóng đá World Cup 2026.
 Người dùng đang trò chuyện với chatbot bóng đá, vì vậy các câu hỏi ngắn như "hôm nay có trận nào?", "ai thắng?", "kết quả?", "bảng xếp hạng?" đều mặc định là hỏi về bóng đá.
@@ -17,6 +29,9 @@ Chỉ trả về đúng 1 trong 3 giá trị trên, không giải thích thêm."
 
 
 async def classify_query(question: str) -> str:
+    if _is_clearly_football(question):
+        return "data_query"
+
     response = await openai_client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
